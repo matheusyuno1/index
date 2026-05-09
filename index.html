@@ -2,353 +2,1521 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Premium Experience</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#050505" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>SniperTrend — Esteja sempre à frente</title>
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/scrollreveal"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold-1: #c9a84c;
+      --gold-2: #f0d080;
+      --gold-3: #7a5c1e;
+      --bg: #050505;
+      --surface: rgba(255,255,255,0.03);
+      --border: rgba(201,168,76,0.2);
+      --text-muted: #6b6b6b;
+      --text-dim: #999;
+    }
+
+    html { scroll-behavior: smooth; }
+
     body {
-      background: #050505;
-      color: white;
+      background: var(--bg);
+      color: #e8e8e8;
+      font-family: 'Syne', sans-serif;
       overflow-x: hidden;
-      font-family: Arial, sans-serif;
+      cursor: none;
+    }
+
+    /* CURSOR */
+    .cursor {
+      width: 8px; height: 8px;
+      background: var(--gold-2);
+      border-radius: 50%;
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%,-50%);
+      transition: width .3s, height .3s, opacity .3s;
+      mix-blend-mode: difference;
+    }
+    .cursor-ring {
+      width: 36px; height: 36px;
+      border: 1px solid rgba(201,168,76,0.5);
+      border-radius: 50%;
+      position: fixed;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%,-50%);
+      transition: all .15s ease;
+    }
+    body:hover .cursor { opacity: 1; }
+
+    /* INTRO OVERLAY */
+    #intro {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    #intro .intro-line {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: var(--gold-1);
+      opacity: 0;
+      text-transform: uppercase;
+    }
+
+    #intro .intro-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(60px, 12vw, 120px);
+      font-weight: 300;
+      letter-spacing: 0.3em;
+      color: transparent;
+      background: linear-gradient(135deg, var(--gold-3), var(--gold-2), var(--gold-1));
+      -webkit-background-clip: text;
+      background-clip: text;
+      opacity: 0;
+    }
+
+    /* NOISE TEXTURE */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.6;
+    }
+
+    /* GRID */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(201,168,76,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,168,76,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ORB */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(140px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.12;
+    }
+    .orb-1 { width: 600px; height: 600px; background: #c9a84c; top: -200px; left: -200px; }
+    .orb-2 { width: 400px; height: 400px; background: #8a6820; bottom: -100px; right: -100px; }
+
+    /* GLASS */
+    .glass {
+      background: var(--surface);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
     }
 
     .gold-text {
-      background: linear-gradient(90deg,#cfa75d,#fff2c2,#a9772f);
+      background: linear-gradient(135deg, var(--gold-3) 0%, var(--gold-2) 50%, var(--gold-1) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
-    .glass {
-      background: rgba(255,255,255,0.05);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255,255,255,0.08);
-      box-shadow: 0 0 40px rgba(255,215,0,0.08);
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 24px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      opacity: 0;
     }
 
-    .gold-border {
-      border: 1px solid rgba(212,175,55,0.4);
+    .nav-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 400;
+      letter-spacing: 0.4em;
+      color: var(--gold-2);
     }
 
-    .hero-bg {
-      background:
-      radial-gradient(circle at top left, rgba(255,215,0,0.15), transparent 30%),
-      radial-gradient(circle at bottom right, rgba(255,215,0,0.08), transparent 25%),
-      #050505;
+    .nav-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--gold-1);
+      padding: 8px 18px;
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      text-transform: uppercase;
     }
 
-    .floating {
-      animation: floating 6s ease-in-out infinite;
+    /* HERO */
+    #hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      padding: 120px 48px 80px;
     }
 
-    @keyframes floating {
-      0% { transform: translateY(0px); }
-      50% { transform: translateY(-20px); }
-      100% { transform: translateY(0px); }
+    .hero-inner {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
     }
 
-    .glow-btn {
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 32px;
+      opacity: 0;
+    }
+
+    .hero-tag span {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--gold-1);
+    }
+
+    .dot-pulse {
+      width: 6px; height: 6px;
+      background: var(--gold-2);
+      border-radius: 50%;
+      position: relative;
+    }
+    .dot-pulse::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 1px solid var(--gold-2);
+      animation: pulse-ring 2s ease-out infinite;
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(2.5); opacity: 0; }
+    }
+
+    .hero-h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(48px, 5.5vw, 80px);
+      font-weight: 300;
+      line-height: 1.05;
+      letter-spacing: -0.01em;
+      margin-bottom: 28px;
+      opacity: 0;
+    }
+
+    .hero-sub {
+      font-size: 15px;
+      line-height: 1.8;
+      color: var(--text-dim);
+      max-width: 480px;
+      margin-bottom: 48px;
+      opacity: 0;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 64px;
+      opacity: 0;
+    }
+
+    .btn-primary {
+      position: relative;
+      padding: 16px 36px;
+      border-radius: 4px;
+      background: linear-gradient(135deg, var(--gold-3), var(--gold-1));
+      color: #000;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      border: none;
+      cursor: none;
+      overflow: hidden;
+      transition: transform .4s ease, box-shadow .4s ease;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 60px rgba(201,168,76,0.3);
+    }
+    .btn-primary::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+      opacity: 0;
+      transition: opacity .3s;
+    }
+    .btn-primary:hover::after { opacity: 1; }
+
+    .btn-ghost {
+      padding: 16px 36px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      color: var(--gold-1);
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+      font-size: 12px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      background: transparent;
+      cursor: none;
+      transition: all .4s ease;
+    }
+    .btn-ghost:hover {
+      background: rgba(201,168,76,0.05);
+      border-color: var(--gold-1);
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      opacity: 0;
+    }
+    .stat-item {
+      padding: 24px 20px;
+      background: var(--bg);
+      text-align: center;
+    }
+    .stat-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 36px;
+      font-weight: 600;
+      display: block;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .stat-label {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    /* HERO CARD */
+    .hero-card {
+      position: relative;
+      opacity: 0;
+    }
+
+    .card-main {
+      border-radius: 2px;
+      padding: 40px;
       position: relative;
       overflow: hidden;
     }
 
-    .glow-btn::before {
+    .card-main::before {
       content: '';
       position: absolute;
-      width: 200%;
-      height: 200%;
-      background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
-      top: -50%;
-      left: -50%;
-      transform: rotate(25deg);
-      animation: shine 4s linear infinite;
+      inset: 0;
+      background: radial-gradient(ellipse at 30% 0%, rgba(201,168,76,0.08) 0%, transparent 60%);
     }
 
-    @keyframes shine {
-      0% { transform: translateX(-100%) rotate(25deg); }
-      100% { transform: translateX(100%) rotate(25deg); }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 36px;
     }
 
-    .blur-orb {
+    .card-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .status-live {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: #4ade80;
+      text-transform: uppercase;
+    }
+    .status-live::before {
+      content: '';
+      width: 5px; height: 5px;
+      background: #4ade80;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #4ade80;
+      animation: blink 1.5s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    /* TREND LIST */
+    .trend-list { margin-bottom: 28px; }
+
+    .trend-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      position: relative;
+    }
+
+    .trend-bar-bg {
       position: absolute;
-      width: 400px;
-      height: 400px;
-      border-radius: 999px;
-      filter: blur(120px);
-      opacity: .25;
-      z-index: 0;
+      left: 0; top: 0; bottom: 0;
+      background: linear-gradient(90deg, rgba(201,168,76,0.06), transparent);
+      border-radius: 2px;
+      transition: width 1s ease;
     }
 
-    .grid-bg {
-      background-image:
-        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-      background-size: 40px 40px;
+    .trend-rank {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text-muted);
+      width: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .trend-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #ddd;
+      flex: 1;
+      padding: 0 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .trend-score {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .trend-delta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: #4ade80;
+      margin-left: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* MINI CARDS */
+    .mini-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .mini-card {
+      border-radius: 2px;
+      padding: 18px;
+    }
+
+    .mini-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .mini-value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      font-weight: 600;
+      line-height: 1;
+    }
+
+    /* REVEAL TAG */
+    .reveal-tag {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--gold-1);
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      margin-bottom: 20px;
+    }
+
+    /* SECTIONS */
+    section { position: relative; z-index: 2; }
+
+    /* MYSTERY SECTION */
+    #mystery {
+      padding: 120px 48px;
+      text-align: center;
+    }
+
+    .mystery-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(48px, 6vw, 88px);
+      font-weight: 300;
+      line-height: 1.05;
+      margin: 0 auto 24px;
+      max-width: 900px;
+    }
+
+    .mystery-sub {
+      font-size: 15px;
+      color: var(--text-dim);
+      max-width: 560px;
+      margin: 0 auto 80px;
+      line-height: 1.8;
+    }
+
+    /* FEATURES GRID */
+    .features-grid {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .feature-item {
+      padding: 48px 40px;
+      background: var(--bg);
+      transition: background .4s;
+    }
+    .feature-item:hover {
+      background: rgba(201,168,76,0.03);
+    }
+
+    .feature-icon {
+      font-size: 28px;
+      margin-bottom: 24px;
+      display: block;
+    }
+
+    .feature-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      line-height: 1.2;
+    }
+
+    .feature-desc {
+      font-size: 14px;
+      color: var(--text-dim);
+      line-height: 1.7;
+    }
+
+    /* HOW IT WORKS */
+    #how {
+      padding: 120px 48px;
+    }
+
+    .section-tag {
+      display: block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--gold-1);
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(40px, 4.5vw, 64px);
+      font-weight: 300;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+
+    .how-grid {
+      max-width: 1100px;
+      margin: 80px auto 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .steps-list { list-style: none; }
+
+    .step {
+      display: flex;
+      gap: 24px;
+      padding: 32px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .step:first-child { padding-top: 0; }
+    .step:last-child { border-bottom: none; }
+
+    .step-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--gold-1);
+      letter-spacing: 2px;
+      min-width: 32px;
+      padding-top: 3px;
+    }
+
+    .step-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #ddd;
+    }
+
+    .step-desc {
+      font-size: 14px;
+      color: var(--text-dim);
+      line-height: 1.7;
+    }
+
+    /* KEYWORD DEMO */
+    .keyword-demo {
+      border-radius: 2px;
+      padding: 36px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .keyword-demo::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 80% 20%, rgba(201,168,76,0.06), transparent 60%);
+    }
+
+    .kd-header {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    .keyword-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+
+    .kw-tag {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 7px 14px;
+      border-radius: 2px;
+      border: 1px solid;
+      transition: all .3s;
+      cursor: default;
+    }
+    .kw-hot  { border-color: rgba(201,168,76,0.5); color: var(--gold-2); background: rgba(201,168,76,0.07); }
+    .kw-warm { border-color: rgba(201,168,76,0.25); color: var(--gold-1); background: rgba(201,168,76,0.03); }
+    .kw-cold { border-color: rgba(255,255,255,0.08); color: var(--text-muted); background: transparent; }
+    .kw-tag:hover { transform: scale(1.05); }
+
+    .kd-insight {
+      padding: 16px 20px;
+      background: rgba(74,222,128,0.05);
+      border: 1px solid rgba(74,222,128,0.15);
+      border-radius: 2px;
+      font-size: 13px;
+      color: #a7f3d0;
+      line-height: 1.6;
+    }
+
+    /* CTA */
+    #cta {
+      padding: 120px 48px;
+    }
+
+    .cta-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: center;
+      border-radius: 2px;
+      padding: 80px 60px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-inner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 0%, rgba(201,168,76,0.1), transparent 50%),
+        radial-gradient(ellipse at 80% 100%, rgba(201,168,76,0.07), transparent 50%);
+    }
+
+    .cta-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--gold-1);
+      display: block;
+      margin-bottom: 24px;
+    }
+
+    .cta-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(40px, 5vw, 68px);
+      font-weight: 300;
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+
+    .cta-sub {
+      font-size: 15px;
+      color: var(--text-dim);
+      max-width: 480px;
+      margin: 0 auto 48px;
+      line-height: 1.7;
+    }
+
+    .waitlist-form {
+      display: flex;
+      gap: 12px;
+      max-width: 440px;
+      margin: 0 auto 28px;
+    }
+
+    .waitlist-input {
+      flex: 1;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 14px 20px;
+      color: #e8e8e8;
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      outline: none;
+      transition: border-color .3s;
+      cursor: none;
+    }
+    .waitlist-input::placeholder { color: var(--text-muted); }
+    .waitlist-input:focus { border-color: var(--gold-1); }
+
+    .countdown-row {
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+      margin-top: 28px;
+    }
+
+    .countdown-item { text-align: center; }
+
+    .countdown-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 44px;
+      font-weight: 600;
+      line-height: 1;
+      display: block;
+    }
+
+    .countdown-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      display: block;
+      margin-top: 4px;
+    }
+
+    .countdown-sep {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 44px;
+      color: var(--border);
+      align-self: flex-start;
+      line-height: 1;
+    }
+
+    /* SCARCITY */
+    .scarcity {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .scarcity strong {
+      color: var(--gold-2);
+    }
+
+    /* FOOTER */
+    footer {
+      padding: 48px;
+      text-align: center;
+      border-top: 1px solid rgba(255,255,255,0.04);
+      position: relative;
+      z-index: 2;
+    }
+
+    .footer-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      font-weight: 300;
+      letter-spacing: 0.5em;
+      color: var(--gold-1);
+      margin-bottom: 16px;
+    }
+
+    .footer-copy {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--text-muted);
+    }
+
+    /* TYPEWRITER */
+    .typewriter::after {
+      content: '|';
+      animation: blink 1s step-end infinite;
+    }
+
+    /* FLOATING ANIMATION */
+    @keyframes floatY {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-14px); }
+    }
+
+    /* ── RESPONSIVE · MOBILE FIRST ──────────────────── */
+
+    /* Tablet+ */
+    @media (max-width: 900px) {
+      /* Hide desktop cursor on touch */
+      .cursor, .cursor-ring { display: none; }
+      body { cursor: auto; }
+      button, a, input { cursor: pointer; }
+
+      /* Nav */
+      nav { padding: 18px 20px; }
+      .nav-badge { display: none; }
+
+      /* Hero */
+      #hero { padding: 100px 20px 60px; }
+      .hero-inner {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+      .hero-card { order: -1; animation: none !important; }
+
+      /* Stats */
+      .stats-row {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .stat-num { font-size: 26px; }
+      .stat-item { padding: 16px 10px; }
+
+      /* Features */
+      .features-grid { grid-template-columns: 1fr; }
+      .feature-item { padding: 36px 28px; }
+
+      /* How */
+      #how { padding: 80px 20px; }
+      .how-grid { grid-template-columns: 1fr; gap: 48px; }
+      .keyword-demo { animation: none !important; }
+
+      /* Mystery */
+      #mystery { padding: 80px 20px; }
+
+      /* CTA */
+      #cta { padding: 80px 20px; }
+      .cta-inner { padding: 48px 24px; }
+      .waitlist-form { flex-direction: column; }
+
+      footer { padding: 40px 24px; }
+    }
+
+    /* Mobile only (≤ 480px) */
+    @media (max-width: 480px) {
+
+      /* Intro */
+      .intro-logo { font-size: 52px !important; letter-spacing: 0.2em !important; }
+      #introLine1, #introLine2 { font-size: 9px !important; letter-spacing: 2px !important; text-align: center; padding: 0 20px; }
+
+      /* Nav */
+      nav { padding: 16px 18px; }
+      .nav-logo { font-size: 18px; letter-spacing: 0.3em; }
+
+      /* Hero */
+      #hero { padding: 90px 18px 52px; }
+      .hero-tag { margin-bottom: 20px; }
+      .hero-tag span { font-size: 9px; letter-spacing: 2px; }
+      .hero-h1 { font-size: clamp(38px, 10vw, 52px); margin-bottom: 18px; }
+      .hero-sub { font-size: 14px; margin-bottom: 32px; }
+
+      /* Buttons — bigger tap targets */
+      .btn-primary, .btn-ghost {
+        padding: 18px 28px;
+        font-size: 11px;
+        letter-spacing: 2px;
+        width: 100%;
+        text-align: center;
+        border-radius: 6px;
+      }
+      .hero-actions { flex-direction: column; gap: 12px; }
+
+      /* Stats row */
+      .stats-row { grid-template-columns: repeat(3, 1fr); }
+      .stat-num { font-size: 22px; }
+      .stat-label { font-size: 9px; letter-spacing: 1px; }
+      .stat-item { padding: 14px 8px; }
+
+      /* Hero card */
+      .card-main { padding: 24px 18px; }
+      .mini-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .mini-card { padding: 14px 12px; }
+      .mini-value { font-size: 22px; }
+
+      /* Trend list */
+      .trend-name { font-size: 12px; }
+      .trend-delta { display: none; }
+
+      /* Mystery */
+      #mystery { padding: 64px 18px; }
+      .mystery-title { font-size: clamp(34px, 9vw, 52px); }
+      .mystery-sub { font-size: 14px; }
+      .reveal-tag { font-size: 8px; }
+
+      /* Features */
+      .feature-item { padding: 28px 20px; }
+      .feature-title { font-size: 22px; }
+      .feature-desc { font-size: 13px; }
+
+      /* Steps */
+      #how { padding: 64px 18px; }
+      .section-title { font-size: clamp(32px, 8vw, 48px); }
+      .step { gap: 16px; padding: 24px 0; }
+      .step-title { font-size: 15px; }
+      .step-desc { font-size: 13px; }
+
+      /* Keyword demo */
+      .keyword-demo { padding: 24px 18px; }
+      .kw-tag { font-size: 11px; padding: 6px 12px; }
+      .kd-insight { font-size: 12px; }
+
+      /* CTA */
+      #cta { padding: 48px 18px; }
+      .cta-inner { padding: 40px 20px; border-radius: 2px; }
+      .cta-title { font-size: clamp(32px, 8vw, 48px); }
+      .cta-sub { font-size: 14px; }
+      .waitlist-input { padding: 16px 18px; font-size: 14px; }
+      .btn-primary.cta-btn { width: 100%; padding: 18px; }
+
+      /* Countdown */
+      .countdown-row { gap: 16px; }
+      .countdown-num { font-size: 34px; }
+      .countdown-sep { font-size: 34px; }
+      .countdown-label { font-size: 8px; }
+
+      /* Scarcity */
+      .scarcity { font-size: 10px; letter-spacing: 1px; }
+
+      footer { padding: 32px 18px; }
+      .footer-logo { font-size: 22px; letter-spacing: 0.3em; }
+      .footer-copy { font-size: 9px; letter-spacing: 1px; }
+    }
+
+    /* Disable heavy floating animation on mobile for perf */
+    @media (hover: none) {
+      .floating, [style*="floatY"] { animation: none !important; }
+      .feature-item:hover { transform: none; }
     }
   </style>
 </head>
-<body class="hero-bg grid-bg">
+<body>
 
-  <div class="blur-orb bg-yellow-500 top-0 left-0"></div>
-  <div class="blur-orb bg-yellow-300 bottom-0 right-0"></div>
+  <!-- CURSOR -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- INTRO OVERLAY -->
+  <div id="intro">
+    <div class="intro-line" id="introLine1">Inicializando protocolo de tendências</div>
+    <div class="intro-logo" id="introLogo">SniperTrend</div>
+    <div class="intro-line" id="introLine2">Pré-lançamento · Acesso limitado</div>
+  </div>
+
+  <!-- ORBS -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <!-- NAV -->
+  <nav id="mainNav">
+    <div class="nav-logo">SniperTrend</div>
+    <div class="nav-badge">Pré-lançamento</div>
+  </nav>
 
   <!-- HERO -->
-  <section class="relative min-h-screen flex items-center justify-center px-6 overflow-hidden">
+  <section id="hero">
+    <div class="hero-inner">
 
-    <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center relative z-10">
-
-      <div>
-
-        <div class="mb-6 inline-flex items-center gap-3 px-5 py-2 rounded-full glass gold-border">
-          <div class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-          <span class="text-sm tracking-[4px] uppercase text-yellow-200">
-            Tecnologia • Inteligência • Exclusividade
-          </span>
+      <div class="hero-left">
+        <div class="hero-tag" id="heroTag">
+          <div class="dot-pulse"></div>
+          <span>IA · Tendências Globais · Estratégia Viral</span>
         </div>
 
-        <h1 class="text-5xl md:text-7xl font-black leading-tight mb-8">
-          Transforme sua
-          <span class="gold-text">empresa</span>
-          em uma marca
-          <span class="gold-text">milionária</span>
+        <h1 class="hero-h1" id="heroH1">
+          O mundo muda.<br>
+          <span class="gold-text">Você precisa<br>saber primeiro.</span>
         </h1>
 
-        <p class="text-gray-300 text-xl leading-relaxed max-w-2xl mb-10">
-          Uma experiência digital construída para gerar autoridade, desejo e conversão.
-          Design futurista, estratégias psicológicas de marketing e animações cinematográficas
-          que aumentam retenção, percepção premium e vendas.
+        <p class="hero-sub" id="heroSub">
+          SniperTrend é o app que lê o pulso do mundo em tempo real. Descubra quais palavras-chave, formatos e narrativas estão explodindo agora — antes que todo mundo saiba — e transforme isso em conteúdo que domina o algoritmo.
         </p>
 
-        <div class="flex flex-wrap gap-5 mb-10">
-          <button class="glow-btn relative px-10 py-5 rounded-2xl bg-gradient-to-r from-yellow-600 to-yellow-300 text-black font-bold text-lg hover:scale-105 transition-all duration-500">
-            QUERO ESCALAR MINHAS VENDAS
+        <div class="hero-actions" id="heroActions">
+          <button class="btn-primary" onclick="document.getElementById('cta').scrollIntoView({behavior:'smooth'})">
+            GARANTIR ACESSO ANTECIPADO
           </button>
-
-          <button class="px-10 py-5 rounded-2xl border border-yellow-600/40 text-white hover:bg-white/5 transition-all duration-500">
-            Ver Demonstração
+          <button class="btn-ghost" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">
+            VER COMO FUNCIONA
           </button>
         </div>
 
-        <div class="grid grid-cols-3 gap-5 max-w-xl">
-          <div class="glass rounded-3xl p-5 text-center">
-            <h2 class="text-3xl font-black gold-text">+387%</h2>
-            <p class="text-gray-400 text-sm mt-2">Mais conversão</p>
+        <div class="stats-row" id="heroStats">
+          <div class="stat-item">
+            <span class="stat-num gold-text">+387%</span>
+            <span class="stat-label">Mais alcance</span>
           </div>
-
-          <div class="glass rounded-3xl p-5 text-center">
-            <h2 class="text-3xl font-black gold-text">24h</h2>
-            <p class="text-gray-400 text-sm mt-2">Automação ativa</p>
+          <div class="stat-item">
+            <span class="stat-num gold-text">24h</span>
+            <span class="stat-label">À frente</span>
           </div>
-
-          <div class="glass rounded-3xl p-5 text-center">
-            <h2 class="text-3xl font-black gold-text">IA</h2>
-            <p class="text-gray-400 text-sm mt-2">Experiência premium</p>
+          <div class="stat-item">
+            <span class="stat-num gold-text">IA</span>
+            <span class="stat-label">Estratégia real</span>
           </div>
         </div>
-
       </div>
 
-      <div class="relative floating">
+      <!-- HERO CARD -->
+      <div class="hero-card" id="heroCard">
+        <div class="card-main glass">
+          <div class="card-header">
+            <span class="card-label">Tendências agora · Brasil</span>
+            <span class="status-live">Ao vivo</span>
+          </div>
 
-        <div class="glass rounded-[40px] p-8 border border-yellow-500/20 shadow-2xl relative overflow-hidden">
+          <div class="trend-list" id="trendList">
+            <!-- JS inject -->
+          </div>
 
-          <div class="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-transparent"></div>
-
-          <div class="relative z-10 space-y-6">
-
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-gray-400">Performance Neural</p>
-                <h2 class="text-3xl font-bold gold-text">98.7%</h2>
-              </div>
-
-              <div class="w-16 h-16 rounded-full bg-yellow-500/20 flex items-center justify-center border border-yellow-500/30">
-                ⚡
-              </div>
+          <div class="mini-grid">
+            <div class="mini-card glass">
+              <div class="mini-label">Virais detectados</div>
+              <div class="mini-value gold-text" id="viralCount">0</div>
             </div>
-
-            <div class="glass rounded-3xl p-5">
-              <div class="flex justify-between mb-3">
-                <span class="text-gray-300">Conversão</span>
-                <span class="gold-text">89%</span>
-              </div>
-
-              <div class="w-full h-3 bg-white/10 rounded-full overflow-hidden">
-                <div class="h-full bg-gradient-to-r from-yellow-600 to-yellow-300 w-[89%]"></div>
-              </div>
+            <div class="mini-card glass">
+              <div class="mini-label">Score médio</div>
+              <div class="mini-value gold-text">94<span style="font-size:16px;color:var(--text-muted)">%</span></div>
             </div>
-
-            <div class="grid grid-cols-2 gap-4">
-              <div class="glass rounded-2xl p-4">
-                <p class="text-gray-400 text-sm">Engajamento</p>
-                <h3 class="text-2xl font-bold mt-2">+241%</h3>
-              </div>
-
-              <div class="glass rounded-2xl p-4">
-                <p class="text-gray-400 text-sm">ROI Médio</p>
-                <h3 class="text-2xl font-bold mt-2">12.8x</h3>
-              </div>
+            <div class="mini-card glass" style="grid-column:span 2">
+              <div class="mini-label" style="margin-bottom:12px">Palavras-chave em ascensão</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap" id="kwPills"></div>
             </div>
-
-            <div class="glass rounded-3xl p-5 border border-yellow-500/20">
-              <p class="text-gray-400 mb-3">Marketing Inteligente</p>
-
-              <div class="space-y-3">
-                <div class="flex justify-between">
-                  <span>Neuromarketing</span>
-                  <span class="gold-text">Ativo</span>
-                </div>
-
-                <div class="flex justify-between">
-                  <span>Automação IA</span>
-                  <span class="gold-text">Integrado</span>
-                </div>
-
-                <div class="flex justify-between">
-                  <span>Escala Viral</span>
-                  <span class="gold-text">ON</span>
-                </div>
-              </div>
-            </div>
-
           </div>
         </div>
-
       </div>
 
     </div>
-
   </section>
 
-  <!-- ESTRATÉGIAS -->
-  <section class="py-32 px-6 relative z-10">
+  <!-- MYSTERY -->
+  <section id="mystery">
+    <p class="reveal-tag">O que ninguém está te contando</p>
+    <h2 class="mystery-title">
+      Enquanto você posta,<br>
+      <span class="gold-text">os melhores já sabem</span><br>
+      o que vai viralizar amanhã.
+    </h2>
+    <p class="mystery-sub">
+      O algoritmo não é sorte. É padrão. SniperTrend decifra esses padrões antes que virem tendência — e transforma dados brutos em estratégias que qualquer criador consegue executar.
+    </p>
 
-    <div class="max-w-7xl mx-auto text-center mb-20">
-      <p class="uppercase tracking-[5px] text-yellow-400 mb-5">
-        Estratégia de conversão
-      </p>
+    <div class="features-grid">
 
-      <h2 class="text-5xl font-black mb-6">
-        Arquitetura criada para
-        <span class="gold-text">dominar atenção</span>
+      <div class="feature-item">
+        <span class="feature-icon">◈</span>
+        <h3 class="feature-title gold-text">Palavras-chave que o algoritmo ama</h3>
+        <p class="feature-desc">
+          Identifique em tempo real quais termos estão em crescimento exponencial em cada plataforma. Saiba o que incluir no seu título, legenda e hashtag antes que o volume exploda.
+        </p>
+      </div>
+
+      <div class="feature-item">
+        <span class="feature-icon">◉</span>
+        <h3 class="feature-title gold-text">Tendências globais e regionais</h3>
+        <p class="feature-desc">
+          Veja o que está subindo no Brasil, América Latina e no mundo. Filtre por nicho, plataforma e formato. Chegue primeiro nas conversas que importam para o seu público.
+        </p>
+      </div>
+
+      <div class="feature-item">
+        <span class="feature-icon">◊</span>
+        <h3 class="feature-title gold-text">Estratégias virais geradas por IA</h3>
+        <p class="feature-desc">
+          Com base no que está crescendo agora, SniperTrend gera roteiros, ângulos e estruturas de conteúdo prontos para aplicar — adaptados ao seu nicho e tom de voz.
+        </p>
+      </div>
+
+      <div class="feature-item">
+        <span class="feature-icon">▣</span>
+        <h3 class="feature-title gold-text">Score de potencial viral</h3>
+        <p class="feature-desc">
+          Antes de publicar, descubra o potencial de alcance do seu conteúdo. SniperTrend pontua cada elemento — título, thumbnail, formato — e sugere ajustes precisos.
+        </p>
+      </div>
+
+      <div class="feature-item">
+        <span class="feature-icon">⬡</span>
+        <h3 class="feature-title gold-text">Radar de nichos emergentes</h3>
+        <p class="feature-desc">
+          Detecte micro-tendências antes de explodirem. Para quem quer ser referência — não seguidor — em qualquer mercado ou segmento.
+        </p>
+      </div>
+
+      <div class="feature-item">
+        <span class="feature-icon">◧</span>
+        <h3 class="feature-title gold-text">Inteligência competitiva</h3>
+        <p class="feature-desc">
+          Veja quais formatos e temas os maiores criadores do seu nicho estão explorando. Antecipe movimentos e posicione seu conteúdo no momento certo.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how">
+    <div style="max-width:1100px;margin:0 auto">
+      <span class="section-tag">Como funciona</span>
+      <h2 class="section-title">
+        Do dado bruto à<br>
+        <span class="gold-text">estratégia executável</span>
       </h2>
 
-      <p class="text-gray-400 max-w-3xl mx-auto text-xl">
-        Cada detalhe visual, animação e estrutura foi desenhado para aumentar
-        percepção de valor, retenção e desejo de compra.
+      <div class="how-grid">
+        <ul class="steps-list">
+
+          <li class="step">
+            <span class="step-num">01</span>
+            <div>
+              <div class="step-title">SniperTrend monitora o mundo</div>
+              <p class="step-desc">Nossa IA rastreia bilhões de sinais em tempo real: buscas, engajamento, velocidade de crescimento e anomalias nas principais plataformas — TikTok, Instagram, YouTube, Google e muito mais.</p>
+            </div>
+          </li>
+
+          <li class="step">
+            <span class="step-num">02</span>
+            <div>
+              <div class="step-title">Filtra o ruído, entrega o sinal</div>
+              <p class="step-desc">Não é sobre o que é popular hoje. É sobre o que vai ser popular amanhã. SniperTrend separa o ruído das tendências reais e entrega insights acionáveis adaptados ao seu nicho.</p>
+            </div>
+          </li>
+
+          <li class="step">
+            <span class="step-num">03</span>
+            <div>
+              <div class="step-title">Gera sua estratégia personalizada</div>
+              <p class="step-desc">Com os dados em mãos, a IA cria um plano específico para você: palavras-chave ideais, melhor formato, ângulo narrativo, horário de publicação e estrutura do conteúdo.</p>
+            </div>
+          </li>
+
+          <li class="step">
+            <span class="step-num">04</span>
+            <div>
+              <div class="step-title">Você publica. O algoritmo responde.</div>
+              <p class="step-desc">Conteúdo alinhado com o momento certo tem desempenho exponencialmente maior. Seus posts, vídeos e imagens chegam à frente do algoritmo — e do seu concorrente.</p>
+            </div>
+          </li>
+
+        </ul>
+
+        <div class="keyword-demo glass" style="animation: floatY 6s ease-in-out infinite;">
+          <div class="kd-header">Análise ao vivo · Nicho: Marketing Digital</div>
+
+          <div class="keyword-cloud">
+            <span class="kw-tag kw-hot">IA para negócios ↑</span>
+            <span class="kw-tag kw-hot">vídeo curto ↑</span>
+            <span class="kw-tag kw-warm">storytelling</span>
+            <span class="kw-tag kw-hot">trend sound ↑</span>
+            <span class="kw-tag kw-warm">autoridade</span>
+            <span class="kw-tag kw-cold">infoproduto</span>
+            <span class="kw-tag kw-hot">POV ↑</span>
+            <span class="kw-tag kw-warm">engajamento</span>
+            <span class="kw-tag kw-cold">webinar</span>
+            <span class="kw-tag kw-hot">UGC ↑</span>
+            <span class="kw-tag kw-warm">reels estratégico</span>
+          </div>
+
+          <div class="kd-insight">
+            💡 <strong>Insight SniperTrend:</strong> Conteúdos em formato POV com IA como protagonista estão crescendo 312% esta semana. Recomendamos abordar amanhã antes do pico.
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section id="cta">
+    <div class="cta-inner glass">
+      <span class="cta-eyebrow">Pré-lançamento exclusivo</span>
+
+      <h2 class="cta-title">
+        O futuro do seu<br>
+        conteúdo começa<br>
+        <span class="gold-text">antes de todo mundo.</span>
+      </h2>
+
+      <p class="cta-sub">
+        Vagas limitadas para o acesso antecipado. Quem entrar agora recebe condições exclusivas que nunca serão repetidas.
       </p>
+
+      <div class="waitlist-form">
+        <input class="waitlist-input" type="email" placeholder="seu@email.com" id="emailInput" />
+        <button class="btn-primary cta-btn" id="joinBtn" onclick="handleJoin()">ENTRAR</button>
+      </div>
+
+      <p class="scarcity" id="scarcityText">
+        <strong id="spotsLeft">247</strong> vagas restantes de 500
+      </p>
+
+      <div class="countdown-row">
+        <div class="countdown-item">
+          <span class="countdown-num gold-text" id="cd-d">07</span>
+          <span class="countdown-label">dias</span>
+        </div>
+        <span class="countdown-sep">:</span>
+        <div class="countdown-item">
+          <span class="countdown-num gold-text" id="cd-h">14</span>
+          <span class="countdown-label">horas</span>
+        </div>
+        <span class="countdown-sep">:</span>
+        <div class="countdown-item">
+          <span class="countdown-num gold-text" id="cd-m">32</span>
+          <span class="countdown-label">min</span>
+        </div>
+        <span class="countdown-sep">:</span>
+        <div class="countdown-item">
+          <span class="countdown-num gold-text" id="cd-s">00</span>
+          <span class="countdown-label">seg</span>
+        </div>
+      </div>
     </div>
-
-    <div class="grid lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-
-      <div class="glass rounded-[35px] p-10 hover:-translate-y-4 transition-all duration-700">
-        <div class="text-5xl mb-8">🧠</div>
-        <h3 class="text-3xl font-bold mb-5 gold-text">
-          Neuromarketing
-        </h3>
-        <p class="text-gray-400 leading-relaxed">
-          Estrutura psicológica focada em gatilhos mentais premium, exclusividade,
-          autoridade e escassez estratégica.
-        </p>
-      </div>
-
-      <div class="glass rounded-[35px] p-10 hover:-translate-y-4 transition-all duration-700">
-        <div class="text-5xl mb-8">🚀</div>
-        <h3 class="text-3xl font-bold mb-5 gold-text">
-          Crescimento Viral
-        </h3>
-        <p class="text-gray-400 leading-relaxed">
-          Experiência visual cinematográfica desenvolvida para aumentar compartilhamentos,
-          retenção e impacto nas redes sociais.
-        </p>
-      </div>
-
-      <div class="glass rounded-[35px] p-10 hover:-translate-y-4 transition-all duration-700">
-        <div class="text-5xl mb-8">⚜️</div>
-        <h3 class="text-3xl font-bold mb-5 gold-text">
-          Percepção Luxo
-        </h3>
-        <p class="text-gray-400 leading-relaxed">
-          Design inspirado em marcas bilionárias e experiências old money premium
-          para elevar valor percebido instantaneamente.
-        </p>
-      </div>
-
-    </div>
-
   </section>
 
-  <!-- CTA FINAL -->
-  <section class="py-32 px-6 relative z-10">
-
-    <div class="max-w-5xl mx-auto text-center glass rounded-[45px] p-16 border border-yellow-500/20 relative overflow-hidden">
-
-      <div class="absolute inset-0 bg-gradient-to-r from-yellow-500/10 via-transparent to-yellow-500/10"></div>
-
-      <div class="relative z-10">
-
-        <p class="uppercase tracking-[5px] text-yellow-300 mb-5">
-          Elite Digital Experience
-        </p>
-
-        <h2 class="text-5xl md:text-6xl font-black leading-tight mb-8">
-          Sua marca precisa
-          <span class="gold-text">parecer milionária</span>
-        </h2>
-
-        <p class="text-gray-400 text-xl max-w-3xl mx-auto mb-12 leading-relaxed">
-          A nova geração de empresas não vende apenas produtos.
-          Elas vendem percepção, experiência, status e emoção.
-        </p>
-
-        <button class="glow-btn relative px-14 py-6 rounded-2xl bg-gradient-to-r from-yellow-600 to-yellow-300 text-black font-black text-xl hover:scale-105 transition-all duration-500">
-          COMEÇAR EXPERIÊNCIA PREMIUM
-        </button>
-
-      </div>
-
-    </div>
-
-  </section>
+  <footer>
+    <div class="footer-logo">SniperTrend</div>
+    <p class="footer-copy">© 2025 SniperTrend — Todos os direitos reservados · Acesso antecipado</p>
+  </footer>
 
   <script>
+    // ── CURSOR (desktop only) ───────────────────────────
+    const isTouch = window.matchMedia('(hover: none)').matches;
+    const cursor  = document.getElementById('cursor');
+    const ring    = document.getElementById('cursorRing');
 
-    ScrollReveal().reveal('.glass', {
-      distance: '60px',
-      duration: 1600,
-      easing: 'ease-out',
-      interval: 150,
-      origin: 'bottom'
-    });
+    if (!isTouch) {
+      let mx = 0, my = 0, rx = 0, ry = 0;
+      document.addEventListener('mousemove', e => {
+        mx = e.clientX; my = e.clientY;
+        cursor.style.left = mx + 'px';
+        cursor.style.top  = my + 'px';
+      });
+      (function animRing() {
+        rx += (mx - rx) * 0.12;
+        ry += (my - ry) * 0.12;
+        ring.style.left = rx + 'px';
+        ring.style.top  = ry + 'px';
+        requestAnimationFrame(animRing);
+      })();
+      document.querySelectorAll('button, a, input').forEach(el => {
+        el.addEventListener('mouseenter', () => {
+          cursor.style.width = '14px'; cursor.style.height = '14px';
+          ring.style.width   = '50px'; ring.style.height   = '50px';
+          ring.style.borderColor = 'rgba(201,168,76,0.9)';
+        });
+        el.addEventListener('mouseleave', () => {
+          cursor.style.width = '8px'; cursor.style.height = '8px';
+          ring.style.width   = '36px'; ring.style.height   = '36px';
+          ring.style.borderColor = 'rgba(201,168,76,0.5)';
+        });
+      });
+    }
 
+    // ── INTRO ───────────────────────────────────────────
     gsap.registerPlugin(ScrollTrigger);
 
-    gsap.utils.toArray('section').forEach(section => {
-      gsap.from(section, {
-        opacity: 0,
-        y: 100,
-        duration: 1.4,
-        scrollTrigger: {
-          trigger: section,
-          start: 'top 85%'
-        }
+    const tl = gsap.timeline();
+    tl
+      .to('#introLine1', { opacity:1, duration:.6, delay:.3 })
+      .to('#introLogo',  { opacity:1, duration:1, ease:'power2.out' })
+      .to('#introLine2', { opacity:1, duration:.6 })
+      .to('#intro',      { opacity:0, duration:.8, delay:.6, ease:'power2.inOut',
+                           onComplete: () => { document.getElementById('intro').style.display = 'none'; } })
+      .to('#mainNav',    { opacity:1, duration:.6 }, '-=.3')
+      .to('#heroTag',    { opacity:1, y:-10, duration:.6 }, '-=.2')
+      .to('#heroH1',     { opacity:1, y:-10, duration:.7 })
+      .to('#heroSub',    { opacity:1, y:-10, duration:.6 }, '-=.3')
+      .to('#heroActions',{ opacity:1, y:-10, duration:.6 }, '-=.3')
+      .to('#heroStats',  { opacity:1, y:-10, duration:.6 }, '-=.3')
+      .to('#heroCard',   { opacity:1, x:-10, duration:.8 }, '-=.8');
+
+    // ── TREND DATA ──────────────────────────────────────
+    const trends = [
+      { name: 'IA para criadores de conteúdo', score: 98, delta: '+41%', w: '98%' },
+      { name: 'Vídeos curtos explicativos',     score: 94, delta: '+28%', w: '94%' },
+      { name: 'POV do bastidor',                score: 87, delta: '+19%', w: '87%' },
+      { name: 'Trend sound original',           score: 81, delta: '+15%', w: '81%' },
+    ];
+
+    const tl2 = document.getElementById('trendList');
+    trends.forEach((t, i) => {
+      const div = document.createElement('div');
+      div.className = 'trend-item';
+      div.innerHTML = `
+        <div class="trend-bar-bg" style="width:0" data-w="${t.w}"></div>
+        <span class="trend-rank">0${i+1}</span>
+        <span class="trend-name">${t.name}</span>
+        <span class="trend-score gold-text">${t.score}</span>
+        <span class="trend-delta">${t.delta}</span>
+      `;
+      tl2.appendChild(div);
+    });
+
+    // Animate bars after intro
+    setTimeout(() => {
+      document.querySelectorAll('.trend-bar-bg').forEach(b => {
+        b.style.transition = 'width 1.4s ease';
+        b.style.width = b.dataset.w;
+      });
+
+      // Count up viral
+      let v = 0;
+      const vc = document.getElementById('viralCount');
+      const iv = setInterval(() => {
+        v += 3;
+        vc.textContent = v;
+        if (v >= 128) { vc.textContent = '128'; clearInterval(iv); }
+      }, 30);
+    }, 2800);
+
+    // KW Pills
+    const kws = ['#IA', '#viral', '#reels', '#POV', '#UGC', '#trend', '#shorts'];
+    const kwPills = document.getElementById('kwPills');
+    kws.forEach(k => {
+      const s = document.createElement('span');
+      s.textContent = k;
+      s.style.cssText = `font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold-1);
+        padding:4px 10px;border:1px solid var(--border);border-radius:2px;letter-spacing:1px;`;
+      kwPills.appendChild(s);
+    });
+
+    // ── SCROLL REVEALS ──────────────────────────────────
+    gsap.utils.toArray('#mystery, #how, #cta').forEach(s => {
+      gsap.from(s, {
+        opacity: 0, y: 60, duration: 1.2,
+        scrollTrigger: { trigger: s, start: 'top 80%' }
       });
     });
 
-    gsap.to('.blur-orb', {
-      y: 80,
-      duration: 8,
-      repeat: -1,
-      yoyo: true,
-      ease: 'sine.inOut'
+    gsap.utils.toArray('.feature-item').forEach((el, i) => {
+      gsap.from(el, {
+        opacity: 0, y: 30, duration: .8, delay: i * .08,
+        scrollTrigger: { trigger: el, start: 'top 88%' }
+      });
     });
 
-  </script>
+    gsap.utils.toArray('.step').forEach((el, i) => {
+      gsap.from(el, {
+        opacity: 0, x: -30, duration: .7, delay: i * .1,
+        scrollTrigger: { trigger: el, start: 'top 88%' }
+      });
+    });
 
+    // ── COUNTDOWN ──────────────────────────────────────
+    function updateCountdown() {
+      const launch = new Date();
+      launch.setDate(launch.getDate() + 11);
+      launch.setHours(launch.getHours() + 14, launch.getMinutes() + 32, 0, 0);
+
+      const key = 'pulse_launch';
+      let target = localStorage.getItem(key);
+      if (!target) { target = launch.toISOString(); localStorage.setItem(key, target); }
+
+      const diff = Math.max(0, new Date(target) - new Date());
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+
+      document.getElementById('cd-d').textContent = String(d).padStart(2,'0');
+      document.getElementById('cd-h').textContent = String(h).padStart(2,'0');
+      document.getElementById('cd-m').textContent = String(m).padStart(2,'0');
+      document.getElementById('cd-s').textContent = String(s).padStart(2,'0');
+    }
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+
+    // ── SUPABASE CONFIG ─────────────────────────────────
+    const SUPA_URL = 'https://qrdypqpiftprcaqcklac.supabase.co';
+    const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFyZHlwcXBpZnRwcmNhcWNrbGFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNzU1MTMsImV4cCI6MjA5Mzg1MTUxM30.OECfYdvVwlc1bBagESyKa3MItxY_0rzGysstZ2H4Wkc';
+
+    // ── SPOTS ───────────────────────────────────────────
+    let spots = parseInt(localStorage.getItem('sniper_spots') || '247');
+
+    async function handleJoin() {
+      const emailInput = document.getElementById('emailInput');
+      const joinBtn    = document.getElementById('joinBtn');
+      const email      = emailInput.value.trim();
+
+      // Validação básica
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        emailInput.style.borderColor = 'rgba(239,68,68,0.6)';
+        emailInput.placeholder = 'E-mail inválido';
+        setTimeout(() => {
+          emailInput.style.borderColor = '';
+          emailInput.placeholder = 'seu@email.com';
+        }, 2000);
+        return;
+      }
+
+      // Estado de loading
+      joinBtn.textContent = '...';
+      joinBtn.disabled = true;
+      joinBtn.style.opacity = '0.7';
+
+      try {
+        const res = await fetch(`${SUPA_URL}/rest/v1/waitlist`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPA_KEY,
+            'Authorization': `Bearer ${SUPA_KEY}`,
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({ email })
+        });
+
+        if (res.status === 409) {
+          // Email duplicado
+          joinBtn.textContent   = 'JÁ CADASTRADO';
+          joinBtn.style.background = 'linear-gradient(135deg,#92400e,#d97706)';
+          joinBtn.style.opacity = '1';
+          emailInput.value = '';
+          setTimeout(() => {
+            joinBtn.textContent  = 'ENTRAR';
+            joinBtn.style.background = '';
+            joinBtn.disabled = false;
+            joinBtn.style.opacity = '1';
+          }, 3000);
+          return;
+        }
+
+        if (!res.ok) throw new Error('Erro ao cadastrar');
+
+        // Sucesso
+        spots = Math.max(0, spots - 1);
+        localStorage.setItem('sniper_spots', spots);
+        document.getElementById('spotsLeft').textContent = spots;
+
+        joinBtn.textContent      = '✓ NA LISTA';
+        joinBtn.style.background = 'linear-gradient(135deg,#15803d,#4ade80)';
+        joinBtn.style.opacity    = '1';
+        emailInput.value = '';
+
+        // Dispara pequena animação no contador de vagas
+        const sc = document.getElementById('scarcityText');
+        sc.style.transition = 'transform .2s ease';
+        sc.style.transform  = 'scale(1.08)';
+        setTimeout(() => sc.style.transform = 'scale(1)', 300);
+
+      } catch (err) {
+        joinBtn.textContent   = 'TENTE NOVAMENTE';
+        joinBtn.style.background = 'linear-gradient(135deg,#7f1d1d,#ef4444)';
+        joinBtn.style.opacity = '1';
+        joinBtn.disabled = false;
+        setTimeout(() => {
+          joinBtn.textContent  = 'ENTRAR';
+          joinBtn.style.background = '';
+          joinBtn.disabled = false;
+        }, 3000);
+      }
+    }
+
+    // Enter no campo de email também submete
+    document.getElementById('emailInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleJoin();
+    });
+
+    // ── ORB PARALLAX (desktop only) ──────────────────────
+    if (!isTouch) {
+      document.addEventListener('mousemove', e => {
+        const x = (e.clientX / window.innerWidth  - .5) * 30;
+        const y = (e.clientY / window.innerHeight - .5) * 30;
+        document.querySelector('.orb-1').style.transform = `translate(${x}px,${y}px)`;
+        document.querySelector('.orb-2').style.transform = `translate(${-x}px,${-y}px)`;
+      });
+    }
+  </script>
 </body>
 </html>
